@@ -124,7 +124,7 @@ OBS: É necessário executar o banco de dados Oracle e o OGG nas duas máquinas 
 #Realizar os 4 comandos abaixo para as duas máquinas:
 Acessar a linha de comando do OGG: ./ggsci
 
-Executar o comando: create subdirs (para criaçãodos diretórios)
+Executar o comando: create subdirs (para criação dos diretórios)
 
 start mgr
 
@@ -308,6 +308,25 @@ start replicat repintan
 
 
 
+dbserver (listener.ora)
+LISTENER =
+  (DESCRIPTION_LIST =
+    (DESCRIPTION =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = dbserver)(PORT = 1521))
+      (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1521))
+    )
+  )
+
+~        
+
+devserver (listener.ora)
+LISTENER =
+  (DESCRIPTION_LIST =
+    (DESCRIPTION =
+      (ADDRESS = (PROTOCOL = TCP)(HOST = devserver)(PORT = 1521))
+      (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1521))
+    )
+  )
 
 
 
