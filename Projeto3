@@ -422,6 +422,10 @@ Precisar copiar a chaver publica para o diretório authorized_keys em todos os n
 cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
 ssh-copy-id -i .ssh/id_rsa.pub aluno@nn2.dsa.com
 
+Testando a conectividade do ssh:
+ssh aluno@nn2.dsa.com
+ssh aluno@dn1.dsa.com
+
 
 
 
