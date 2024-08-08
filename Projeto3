@@ -121,7 +121,7 @@ Linha de comando do OGG: ./ggsci > start mgr > info all para iniciar o serviço
 OBS: É necessário executar o banco de dados Oracle e o OGG nas duas máquinas (Serv e Prod)
 
 #Configurando a replicação: 
-#Realizar os 4 comandos abaixo para as duas máquinas:
+#Realizar os comandos abaixo para as duas máquinas:
 Acessar a linha de comando do OGG: ./ggsci
 
 Executar o comando: create subdirs (para criação dos diretórios)
@@ -140,14 +140,14 @@ Executar os comando abaixo: comandos para ativar os logs, replicação, tablespa
 Source:
 alter database add supplemental log data;
 alter system set enable_goldengate_replication=true scope=both;
-create tablespace ggs_data5 datafile '/u01/app/oracle/oradata/orcl2/ggstarget_data05.dbf' size 1024m autoextend on;
-create user ggadmin5 identified by ggadmin5 default tablespace ggs_data5 temporary tablespace temp;
+create tablespace ggs_data6 datafile '/u01/app/oracle/oradata/orcl2/ggstarget_data06.dbf' size 1024m autoextend on;
+create user ggadmin6 identified by ggadmin5 default tablespace ggs_data6 temporary tablespace temp;
 grant connect,resource,create session, alter session to ggadmin5;
-grant select any dictionary, select any table,create table to ggadmin5;
-grant alter any table to ggadmin5;
-grant execute on utl_file to ggadmin5;
-grant flashback any table to ggadmin5;
-grant execute on dbms_flashback to ggadmin5;
+grant select any dictionary, select any table,create table to ggadmin6;
+grant alter any table to ggadmin6;
+grant execute on utl_file to ggadmin6;
+grant flashback any table to ggadmin6;
+grant execute on dbms_flashback to ggadmin6;
 @marker_setup.sql
 @ddl_setup.sql
 @role_setup.sql
@@ -158,10 +158,10 @@ grant execute on dbms_flashback to ggadmin5;
 Target
 alter database add supplemental log data;
 alter system set enable_goldengate_replication=true scope=both;
-create tablespace ggs_data5 datafile '/u01/app/oracle/oradata/orcl/ggstarget_data05.dbf' size 1024m autoextend on;
-create user ggadmin5 identified by ggadmin5 default tablespace ggs_data5 temporary tablespace temp;
+create tablespace ggs_data6 datafile '/u01/app/oracle/oradata/orcl/ggstarget_data05.dbf' size 1024m autoextend on;
+create user ggadmin6 identified by ggadmin6 default tablespace ggs_data6 temporary tablespace temp;
 grant connect,resource,create session, alter session to ggadmin5;
-grant select any dictionary, select any table,create table to ggadmin5;
+grant select any dictionary, select any table,create table to ggadmin6;
 grant alter any table to ggadmin5;
 grant execute on utl_file to ggadmin5;
 grant flashback any table to ggadmin5;
@@ -174,12 +174,12 @@ grant execute on dbms_flashback to ggadmin5;
 
 #Criar o schema da tabela
 No prod:
-create user appuser3 identified by appuser3 default tablespace users temporary tablespace temp;
+create user appuser4 identified by appuser4 default tablespace users temporary tablespace temp;
 
-grant connect, resource, create session to appuser3; 
-grant unlimited tablespace to appuser3;
+grant connect, resource, create session to appuser4; 
+grant unlimited tablespace to appuser4;
 
- CREATE TABLE appuser3.TB_EMP3
+ CREATE TABLE appuser4.TB_EMP4
  (EMPNO INT,
   ENAME VARCHAR(10),
   JOB VARCHAR(9),
@@ -192,12 +192,12 @@ grant unlimited tablespace to appuser3;
 
 
 No Serv:
-create user appuser3 identified by appuser3 default tablespace users temporary tablespace temp;
+create user appuser4 identified by appuser4 default tablespace users temporary tablespace temp;
 
-grant connect, resource, create session to appuser3; 
-grant unlimited tablespace to appuser3;
+grant connect, resource, create session to appuser4; 
+grant unlimited tablespace to appuser4;
 
- CREATE TABLE appuser3.TB_EMP3
+ CREATE TABLE appuser4.TB_EMP4
  (EMPNO INT,
   ENAME VARCHAR(10),
   JOB VARCHAR(9),
@@ -247,7 +247,7 @@ Source:
 
 dblogin userid ggadmin5
 
-add trandata appuser3.* cols *
+add trandata appuser4.* cols *
 
 Precisa ativar o arhive log par o banco de dados Oracle, para isso execute:
 sqlplus / as sysdba
@@ -304,6 +304,19 @@ add replicat repintan integrated exttrail ./dirdat/pn
 start replicat repintan
 
 
+
+
+
+
+Execute estes comandos para inserir alguns registros na tabela:
+
+INSERT INTO appuser3.TB_EMP3 VALUES (1006, 'Pele', 'Analista', NULL, NULL, 80000, 250, 90, sysdate);
+commit;
+INSERT INTO appuser3.TB_EMP3 VALUES (1001, 'Zico', 'Contador', NULL, NULL, 76000, 340, 100, sysdate);
+
+
+INSERT INTO appuser4.TB_EMP4 VALUES (1006, 'Lucas', 'Analista', NULL, NULL, 80000, 250, 90, sysdate);
+commit;
 
 
 
