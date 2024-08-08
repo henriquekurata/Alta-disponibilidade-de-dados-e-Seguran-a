@@ -309,14 +309,21 @@ start replicat repintan
 
 
 Execute estes comandos para inserir alguns registros na tabela:
-
 INSERT INTO appuser3.TB_EMP3 VALUES (1006, 'Pele', 'Analista', NULL, NULL, 80000, 250, 90, sysdate);
 commit;
-INSERT INTO appuser3.TB_EMP3 VALUES (1001, 'Zico', 'Contador', NULL, NULL, 76000, 340, 100, sysdate);
-
 
 INSERT INTO appuser4.TB_EMP4 VALUES (1006, 'Lucas', 'Analista', NULL, NULL, 80000, 250, 90, sysdate);
 commit;
+
+INSERT INTO appuser4.TB_EMP4 VALUES (1006, 'Henrique', 'Analista', NULL, NULL, 80000, 250, 90, sysdate);
+commit;
+
+Execute o comando abaixo no prod e serv para verificar a replicação:
+SELECT COUNT (*) FROM APPUSER4.TB_EMP4;
+
+
+
+
 
 
 
@@ -340,6 +347,88 @@ LISTENER =
       (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC1521))
     )
   )
+
+
+
+
+
+
+
+
+
+
+
+
+
+********** REPLICAÇÃO ENTRE BANCO DE DADOS RELACIONAL E APACHE HADOOP HDFS - BANCO DE DADOS ORACLE E HADOOP**********
+
+- Ferramentas:
+
+- Passos: 
+
+
+- Comandos:
+Criar VM com Red Hat e executar o primeiro namenode
+
+Verificar lista de prioridades: sudo vi /etc/sudoers e adicionar o usuário aluno na lista junto com o root
+
+Fazer o Download JDK 8, descompactar e mover para a pasta: sudo mv jdk1.8 /opt/jdk
+Fazer o Download HADOOP, descompactar e mover para a pasta: sudo mv hadoop /opt/hadoop
+Fazer o Download Zookeeper, descompactar e mover para a pasta: sudo mv zookeeper /opt/zookeeper
+
+Ir para a pasta home (~) e editar o arquivo .bash_profile com as variáveis de ambiente:
+# Java JDK 1.8
+export JAVA_HOME=/opt/jdk
+export JRE_HOME=/opt/jdk/jre
+export PATH=$PATH:$JAVA_HOME/bin:$JRE_HOME/bin
+
+# Hadoop
+export HADOOP_HOME=/opt/hadoop
+export PATH=$PATH:$HADOOP_HOME/bin
+
+# Zookeeper
+export ZOOKEEPER_HOME=opt/zookeeper
+export PATH=$PATH:$ZOOKEEPER_HOME/bin
+
+#Criar clone do Namenode para o Secondary e o datanode
+Obs: Como estamos clonando, é importante azer o refresh do MAC adress das duas máquinas clonadas. Além disso, a rede precisa estar no modo "Bridge adapter"
+
+Alterar o nome das máquinas:  
+sudo vi /etc/hostname (nn1.dsa.com / nn2.dsa.com / dn1.dsa.com)
+hostnamectl set-hostname dn1.dsa.com / nn2.dsa.com
+
+Ajustar o arquivo de rede: sudo vi /etc/hosts com o endereço e o hostname de cada máquina
+Testar com o comando "ping"
+
+1. Variaveis para arquivo .bashrc
+# Incluir as linhas abaixo no arquivo ~/.bashrc em todos os nodes do cluster
+
+export HADOOP_HOME=/opt/hadoop
+export HADOOP_MAPRED_HOME=$HADOOP_HOME
+export HADOOP_COMMON_HOME=$HADOOP_HOME
+export HADOOP_HDFS_HOME=$HADOOP_HOME
+export YARN_HOME=$HADOOP_HOME
+export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
+export YARN_CONF_DIR=$HADOOP_HOME/etc/hadoop
+export JAVA_HOME=/opt/jdk
+export ZOOKEEPER_HOME=/opt/zookeeper
+export PATH=$PATH:$JAVA_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$ZOOKEEPER_HOME/bin
+
+#Configurandos as chaves ssh sem senha
+ssh-keygen -t rsa
+Após esse comando é só dar enter, pois queremos a conexão sem senha
+
+Precisar copiar a chaver publica para o diretório authorized_keys em todos os nodes, portanto execute os comando abaixo no namenode:
+cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+ssh-copy-id -i .ssh/id_rsa.pub aluno@nn2.dsa.com
+
+
+
+
+
+
+
+
 
 
 
