@@ -426,12 +426,158 @@ Testando a conectividade do ssh:
 ssh aluno@nn2.dsa.com
 ssh aluno@dn1.dsa.com
 
+#Configurando o namenode
+Acesse /opt/hadoop/etc/hadoop
+
+vi core-site.xml e adicione:
+
+<property>
+ <name>fs.defaultFS</name>
+ <value>hdfs://ha-cluster</value>
+</property>
+
+<property>
+ <name>dfs.journalnode.edits.dir</name>
+ <value>/home/hadoop/HA/data/jn</value>
+</property>
+
+ <property>
+  <name>ha.zookeeper.quorum</name>
+  <value>nn1.dsa.com:2181,nn2.dsa.com:2181,dn1.dsa.com:2181</value>
+ </property>
 
 
+vi hdfs-site.xml:
+
+<property>
+ <name>dfs.namenode.name.dir</name>
+ <value>/home/hadoop/HA/data/namenode</value>
+ </property>
+ <property>
+ <name>dfs.replication</name>
+ <value>1</value>
+ </property>
+ <property>
+ <name>dfs.permissions</name>
+ <value>false</value>
+ </property>
+ <property>
+ <name>dfs.nameservices</name>
+ <value>ha-cluster</value>
+ </property>
+ <property>
+ <name>dfs.ha.namenodes.ha-cluster</name>
+ <value>nn1,nn2</value>
+ </property>
+ <property>
+ <name>dfs.namenode.rpc-address.ha-cluster.nn1</name>
+ <value>nn1.dsa.com:9000</value>
+ </property>
+ <property>
+ <name>dfs.namenode.rpc-address.ha-cluster.nn2</name>
+ <value>nn2.dsa.com:9000</value>
+ </property>
+ <property>
+ <name>dfs.namenode.http-address.ha-cluster.nn1</name>
+ <value>nn1.dsa.com:50070</value>
+ </property>
+ <property>
+ <name>dfs.namenode.http-address.ha-cluster.nn2</name>
+ <value>nn2.dsa.com:50070</value>
+ </property>
+ <property>
+ <name>dfs.namenode.shared.edits.dir</name>
+ <value>qjournal://nn1.dsa.com:8485;nn2.dsa.com:8485;dn1.dsa.com:8485/ha-cluster</value>
+ </property>
+ <property>
+ <name>dfs.client.failover.proxy.provider.ha-cluster</name>
+ <value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+ </property>
+ <property>
+ <name>dfs.ha.automatic-failover.enabled</name>
+ <value>true</value>
+ </property>
+ <property>
+ <name>dfs.ha.fencing.methods</name>
+ <value>sshfence</value>
+ </property>
+ <property>
+ <name>dfs.ha.fencing.ssh.private-key-files</name>
+ <value>/home/hadoop/.ssh/id_rsa</value>
+ </property>
 
 
+#Configurando o zookeeper
+Acesse: /opt/zookeeper/conf
+Faça a cópia do diretório zoo_smple.cfg: cp zoo_smple.cfg zoo.cfg
+
+Edite:
+dataDir=/home/hadoop/HA/data/zookeeper
+Server.1=nn1.dsa.com:2888:3888
+Server.2=nn2.dsa.com:2888:3888
+Server.3=dn1.dsa.com:2888:3888
 
 
+Criar a pasta /home/hadoop/HA/data/jn em todas as máquinas que foram configuradas o Jornalnode
+Criar a pasta /home/hadoop/HA/data/namenode nos dois namenodes para gravação de metadados do namenode
+Criar a pasta /home/hadoop/HA/data/datanode no datanode para gravação de metadados do datanode
+
+Adicionar o parâmetro abaixo no arquuivo hdfs-site.xml para o datanode:
+    <property>
+ <name>dfs.datanode.name.dir</name>
+ <value>home/hadoop/HA/data/datanode</value>
+ </property>
+
+#Arquivo Worker
+Em todas as máquinas do cluster, editar o arquivo workers e adicionar a lista de datanodes: 
+1-Editar o arquivo: /opt/hadoop/etc/hadoop/workers 
+2-Remover a opção de localhost 
+3-Incluir a lista de datanodes, um em cada linha (deve ser usado o mesmo nome configurado no arquivo /etc/hosts
+
+#Configuração da ordem no zookeeper
+Crie o diretório /home/hadoop/HA/data/zookeeper
+
+Edite o aquivo myid com a indentação da máquina dentro do cluster
+Deve ser feito para todas as máquinas
+
+#Iniciando o cluster
+OBS: Antes de iniciar o cluster é importante limpar todos os diretórios de metadados 
+
+
+Para o Journalnode precisamos configurar o jdk nas máquinas que rodarão esse daemon, portanto acesse: cd /opt/hadoop/etc/hadoop
+e edite o arquivo hadoop-env.sh:
+export JAVA_HOME=/opt/jdk
+
+JOURNALNODE: MÁQUINAS COM O DAEMON
+hdfs --daemon start journalnode
+
+Firewall precisa estart desativado em todas as máqunas:
+sudo firewall-cmd --state
+sudo systemctl stop firewalld
+sudo systemctl disable firewalld
+
+FORMATAÇÃO NAMENODE
+hdfs namenode -format
+
+NAMENODE ATIVO
+hdfs --daemon start namenode
+
+NAMENODE STANDBY:  
+hdfs namenode -bootstrapStandby (cópia de metadados do nó ativo)
+hdfs --daemon start namenode
+
+ZOOKEEPER: deve rodar em todas as máquinas do cluster
+zkServer.sh start
+
+DATANODE
+hdfs --daemon start datanode
+
+FAILOVER CONTROLLER> para os dois namenodes
+hdfs zkfc -formatZK 
+hdfs --daemon start zkfc
+
+Acesse  o endereço ip para verificar o estado do cluster HDFS:
+Endereço IP da máquina:50070 no navegador web
 
 
 
